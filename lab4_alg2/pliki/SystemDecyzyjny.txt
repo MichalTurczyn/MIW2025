@@ -1,0 +1,14 @@
+D1 Deszczowa Goraco Wysoka Slaby Tak
+D2 Pochmurna Lagodnie Wysoka Slaby Tak
+D3 Sloneczna Chlodno Wysoka Mocny Tak
+D4 Sloneczna Goraco Wysoka Mocny Tak
+D5 Pochmurna Goraco Normalna Mocny Tak
+D6 Sloneczna Chlodno Wysoka Slaby Tak
+D7 Deszczowa Goraco Wysoka Mocny Tak
+D8 Deszczowa Chlodno Wysoka Mocny Tak
+D9 Deszczowa Lagodnie Normalna Mocny Tak
+D10 Deszczowa Lagodnie Wysoka Mocny Nie
+D11 Sloneczna Chlodno Normalna Mocny Nie
+D12 Deszczowa Lagodnie Normalna Slaby Nie
+D13 Pochmurna Goraco Wysoka Slaby Nie
+D14 Sloneczna Goraco Normalna Mocny Nie

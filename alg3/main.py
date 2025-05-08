@@ -1,0 +1,81 @@
+from collections import defaultdict, Counter
+
+objects = {
+    'o1': {'a1': 2, 'a2': 6, 'a3': 1, 'a4': 2, 'a5': 3, 'd': 1},
+    'o2': {'a1': 1, 'a2': 1, 'a3': 1, 'a4': 3, 'a5': 2, 'd': 1},
+    'o3': {'a1': 2, 'a2': 1, 'a3': 1, 'a4': 2, 'a5': 3, 'd': 1},
+    'o4': {'a1': 4, 'a2': 1, 'a3': 3, 'a4': 1, 'a5': 2, 'd': 1},
+    'o5': {'a1': 3, 'a2': 5, 'a3': 2, 'a4': 1, 'a5': 3, 'd': 2},
+    'o6': {'a1': 3, 'a2': 1, 'a3': 3, 'a4': 1, 'a5': 1, 'd': 2},
+    'o7': {'a1': 1, 'a2': 1, 'a3': 1, 'a4': 3, 'a5': 1, 'd': 2}
+}
+
+def group_by_decision(data):
+    concept_dict = defaultdict(set)
+    for obj, attrs in data.items():
+        concept_dict[attrs['d']].add(obj)
+    return concept_dict
+
+def all_descriptors(data):
+    descriptor_to_objects = defaultdict(set)
+    for obj, attrs in data.items():
+        for attr, value in attrs.items():
+            if attr != 'd':
+                descriptor_to_objects[(attr, value)].add(obj)
+    return descriptor_to_objects
+
+def is_consistent(covered_objs, concept_objs):
+    return covered_objs <= concept_objs
+
+def lem2(data):
+    concepts = group_by_decision(data)
+    descriptors = all_descriptors(data)
+    rules = []
+    globally_covered = set()
+
+    for decision_value, concept_objs in concepts.items():
+        uncovered = set(concept_objs) - globally_covered
+
+        while uncovered:
+            current_rule = []
+            current_coverage = set(data.keys())
+            working_set = set(uncovered)
+
+            while True:
+                desc_counter = Counter()
+                for desc, objs in descriptors.items():
+                    desc_counter[desc] = len(working_set & objs)
+
+                if not desc_counter:
+                    break
+
+                sorted_desc = sorted(desc_counter.items(), key=lambda x: (-x[1], x[0]))
+
+                found = False
+                for desc, _ in sorted_desc:
+                    new_coverage = current_coverage & descriptors[desc]
+                    if not new_coverage:
+                        continue
+
+                    current_rule.append(desc)
+                    current_coverage = new_coverage
+
+                    if is_consistent(current_coverage, concept_objs):
+                        found = True
+                        break
+                    else:
+                        working_set = working_set & descriptors[desc]
+
+                if found:
+                    break
+
+            rules.append((current_rule, decision_value, current_coverage))
+            uncovered -= current_coverage
+            globally_covered |= current_coverage
+
+    return rules
+
+rules = lem2(objects)
+for i, (conds, decision, support) in enumerate(rules, 1):
+    cond_str = " ∧ ".join(f"{attr} = {val}" for attr, val in conds)
+    print(f"Reguła {i}: ({cond_str}) ⇒ (d = {decision})  [pokrywa: {len(support)} obiektów: {sorted(support)}]")

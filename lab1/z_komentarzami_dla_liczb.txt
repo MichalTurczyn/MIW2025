@@ -1,0 +1,66 @@
+import numpy as np
+from itertools import combinations
+
+def znajdz_reguly_1_rzedu(atrybuty, decyzje):
+    reguly_1 = []
+    atrybuty_uzyte_w_regulach_1_rzedu = set()  # Użyte atrybuty w regułach 1 rzędu
+
+    for kolumna in range(atrybuty.shape[1]):
+        for wartosc in np.unique(atrybuty[:, kolumna]):
+            # Sprawdzamy, czy dla tej wartości w kolumnie decyzje są takie same
+            dec = decyzje[atrybuty[:, kolumna] == wartosc][0]
+            if np.all(decyzje[atrybuty[:, kolumna] == wartosc] == dec):
+                reguly_1.append((kolumna, wartosc, dec))
+                atrybuty_uzyte_w_regulach_1_rzedu.add((kolumna, wartosc))  # Dodajemy do użytych
+
+    return reguly_1, atrybuty_uzyte_w_regulach_1_rzedu
+
+
+def znajdz_reguly_2_rzedu(atrybuty, decyzje, atrybuty_uzyte_w_regulach_1_rzedu):
+    reguly_2 = []
+
+    # Tworzymy wszystkie kombinacje 2 atrybutów
+    for (kol1, kol2) in combinations(range(atrybuty.shape[1]), 2):
+        for wart1 in np.unique(atrybuty[:, kol1]):
+            for wart2 in np.unique(atrybuty[:, kol2]):
+                # Sprawdzamy, czy atrybuty w tej kombinacji nie były wcześniej użyte w regule 1 rzędu
+                if (kol1, wart1) in atrybuty_uzyte_w_regulach_1_rzedu or (kol2, wart2) in atrybuty_uzyte_w_regulach_1_rzedu:
+                    continue
+
+                # Sprawdzamy, czy dla tej kombinacji atrybutów decyzja jest jednoznaczna
+                decyzje_w_wierszach = decyzje[(atrybuty[:, kol1] == wart1) & (atrybuty[:, kol2] == wart2)]
+                if len(decyzje_w_wierszach) > 0 and np.all(decyzje_w_wierszach == decyzje_w_wierszach[0]):
+                    reguly_2.append(((kol1, wart1), (kol2, wart2), decyzje_w_wierszach[0]))
+
+    return reguly_2
+
+
+data = np.array([
+    [1, 2, 3, 4, 1],
+    [2, 2, 1, 1, 1],
+    [5, 2, 3, 4, 1],
+    [0, 0, 3, 0, 0],
+    [1, 0, 1, 4, 0],
+    [0, 0, 0, 0, 0]
+])
+
+atrybuty = data[:, :-1]
+decyzje = data[:, -1]
+
+# Generowanie reguł 1 rzędu
+reguly_1, atrybuty_uzyte_w_regulach_1_rzedu = znajdz_reguly_1_rzedu(atrybuty, decyzje)
+
+# Generowanie reguł 2 rzędu
+reguly_2 = znajdz_reguly_2_rzedu(atrybuty, decyzje, atrybuty_uzyte_w_regulach_1_rzedu)
+
+# Wyświetlanie wyników
+
+# Wyświetlanie reguł 1 rzędu
+print("Reguły 1 rzędu:")
+for i, (kolumna, wartosc, dec) in enumerate(reguly_1, start=1):
+    print(f"R{i}: jeśli a{kolumna + 1}={wartosc} to d={dec}")
+
+# Wyświetlanie reguł 2 rzędu
+print("\nReguły 2 rzędu:")
+for i, ((kol1, wart1), (kol2, wart2), dec) in enumerate(reguly_2, start=len(reguly_1) + 1):
+    print(f"R{i}: jeśli (a{kol1 + 1}={wart1} i a{kol2 + 1}={wart2}) to d={dec}")
