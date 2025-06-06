@@ -1,8 +1,9 @@
 def algorytm_lem2(dane, nazwy_atrybutow):
-    obiekty = dane[1:]
-    atrybuty_warunkowe = [wiersz[:-2] for wiersz in obiekty]
-    decyzje = [wiersz[-2] for wiersz in obiekty]
-    identyfikatory_obiektow = [wiersz[-1] for wiersz in obiekty]
+    obiekty_data = dane[1:]
+
+    atrybuty_warunkowe = [wiersz[:-2] for wiersz in obiekty_data]
+    decyzje = [wiersz[-2] for wiersz in obiekty_data]
+    identyfikatory_obiektow = [wiersz[-1] for wiersz in obiekty_data]
 
     klasy_decyzyjne = {}
     for indeks, decyzja in enumerate(decyzje):
@@ -14,12 +15,13 @@ def algorytm_lem2(dane, nazwy_atrybutow):
     pokryte_obiekty = set()
 
     for decyzja, indeksy_klasy in klasy_decyzyjne.items():
-        niepokryte_w_klasie = [i for i in indeksy_klasy if i not in pokryte_obiekty]
+        niepokryte_w_klasie = set(indeksy_klasy) - pokryte_obiekty
 
         while niepokryte_w_klasie:
             licznik_deskryptorow = {}
-            for indeks_atrybutu in range(len(nazwy_atrybutow)):
-                for indeks_obiektu in niepokryte_w_klasie:
+
+            for indeks_obiektu in niepokryte_w_klasie:
+                for indeks_atrybutu in range(len(nazwy_atrybutow)):
                     wartosc = atrybuty_warunkowe[indeks_obiektu][indeks_atrybutu]
                     klucz = (indeks_atrybutu, wartosc)
                     licznik_deskryptorow[klucz] = licznik_deskryptorow.get(klucz, 0) + 1
@@ -27,16 +29,22 @@ def algorytm_lem2(dane, nazwy_atrybutow):
             najlepszy_deskryptor = None
             maks_licznik = 0
             for (indeks_atrybutu, wartosc), liczba in licznik_deskryptorow.items():
-                if liczba > maks_licznik or (liczba == maks_licznik and najlepszy_deskryptor is None):
+                if liczba > maks_licznik:
                     maks_licznik = liczba
                     najlepszy_deskryptor = (indeks_atrybutu, wartosc)
+                elif liczba == maks_licznik:
+                    if najlepszy_deskryptor is None or \
+                            (indeks_atrybutu < najlepszy_deskryptor[0]) or \
+                            (indeks_atrybutu == najlepszy_deskryptor[0] and wartosc < najlepszy_deskryptor[1]):
+                        najlepszy_deskryptor = (indeks_atrybutu, wartosc)
 
             if not najlepszy_deskryptor:
                 break
 
             indeks_atrybutu, najlepsza_wartosc = najlepszy_deskryptor
+
             pasujace_obiekty = set()
-            for i in range(len(obiekty)):
+            for i in range(len(obiekty_data)):
                 if atrybuty_warunkowe[i][indeks_atrybutu] == najlepsza_wartosc:
                     pasujace_obiekty.add(i)
 
@@ -48,23 +56,25 @@ def algorytm_lem2(dane, nazwy_atrybutow):
 
             if spojna:
                 warunki_reguly = [najlepszy_deskryptor]
-                pokrycie_reguly = pasujace_obiekty & set(niepokryte_w_klasie)
+                pokrycie_reguly_indices = pasujace_obiekty & niepokryte_w_klasie
+
                 reguly.append({
                     'warunki': warunki_reguly,
                     'decyzja': decyzja,
-                    'pokrycie': len(pokrycie_reguly),
-                    'obiekty': [identyfikatory_obiektow[i] for i in pokrycie_reguly]
+                    'pokrycie': len(pokrycie_reguly_indices),
+                    'obiekty': [identyfikatory_obiektow[i] for i in pokrycie_reguly_indices]
                 })
-                pokryte_obiekty.update(pokrycie_reguly)
-                niepokryte_w_klasie = [i for i in indeksy_klasy if i not in pokryte_obiekty]
+                pokryte_obiekty.update(pokrycie_reguly_indices)
+                niepokryte_w_klasie = set(indeksy_klasy) - pokryte_obiekty
             else:
-                biezace_obiekty = pasujace_obiekty & set(niepokryte_w_klasie)
                 warunki_reguly = [najlepszy_deskryptor]
+                biezace_obiekty = pasujace_obiekty & niepokryte_w_klasie
 
                 while True:
                     kolejny_deskryptor = None
                     maks_licznik = 0
                     tymczasowe_liczniki = {}
+
                     for indeks_obiektu in biezace_obiekty:
                         for indeks_atrybutu in range(len(nazwy_atrybutow)):
                             if any(warunek[0] == indeks_atrybutu for warunek in warunki_reguly):
@@ -74,22 +84,27 @@ def algorytm_lem2(dane, nazwy_atrybutow):
                             tymczasowe_liczniki[klucz] = tymczasowe_liczniki.get(klucz, 0) + 1
 
                     for (indeks_atrybutu, wartosc), liczba in tymczasowe_liczniki.items():
-                        if liczba > maks_licznik or (liczba == maks_licznik and kolejny_deskryptor is None):
+                        if liczba > maks_licznik:
                             maks_licznik = liczba
                             kolejny_deskryptor = (indeks_atrybutu, wartosc)
+                        elif liczba == maks_licznik:
+                            if kolejny_deskryptor is None or \
+                                    (indeks_atrybutu < kolejny_deskryptor[0]) or \
+                                    (indeks_atrybutu == kolejny_deskryptor[0] and wartosc < kolejny_deskryptor[1]):
+                                kolejny_deskryptor = (indeks_atrybutu, wartosc)
 
                     if not kolejny_deskryptor:
                         break
 
                     warunki_reguly.append(kolejny_deskryptor)
 
-                    aktualne_dopasowanie = set(range(len(obiekty)))
-                    for indeks_atrybutu, wartosc in warunki_reguly:
-                        dopasowanie = set()
-                        for i in range(len(obiekty)):
-                            if atrybuty_warunkowe[i][indeks_atrybutu] == wartosc:
-                                dopasowanie.add(i)
-                        aktualne_dopasowanie = aktualne_dopasowanie & dopasowanie
+                    aktualne_dopasowanie = set(range(len(obiekty_data)))
+                    for idx_attr, val_attr in warunki_reguly:
+                        temp_match = set()
+                        for i in range(len(obiekty_data)):
+                            if atrybuty_warunkowe[i][idx_attr] == val_attr:
+                                temp_match.add(i)
+                        aktualne_dopasowanie = aktualne_dopasowanie & temp_match
 
                     spojna = True
                     for indeks_obiektu in aktualne_dopasowanie:
@@ -98,38 +113,47 @@ def algorytm_lem2(dane, nazwy_atrybutow):
                             break
 
                     if spojna:
-                        pokrycie_reguly = aktualne_dopasowanie & set(niepokryte_w_klasie)
+                        pokrycie_reguly_indices = aktualne_dopasowanie & niepokryte_w_klasie
+                        if not pokrycie_reguly_indices:
+                            break
+
                         reguly.append({
                             'warunki': warunki_reguly,
                             'decyzja': decyzja,
-                            'pokrycie': len(pokrycie_reguly),
-                            'obiekty': [identyfikatory_obiektow[i] for i in pokrycie_reguly]
+                            'pokrycie': len(pokrycie_reguly_indices),
+                            'obiekty': [identyfikatory_obiektow[i] for i in pokrycie_reguly_indices]
                         })
-                        pokryte_obiekty.update(pokrycie_reguly)
-                        niepokryte_w_klasie = [i for i in indeksy_klasy if i not in pokryte_obiekty]
+                        pokryte_obiekty.update(pokrycie_reguly_indices)
+                        niepokryte_w_klasie = set(indeksy_klasy) - pokryte_obiekty
                         break
                     else:
-                        biezace_obiekty = aktualne_dopasowanie & set(niepokryte_w_klasie)
-
+                        biezace_obiekty = aktualne_dopasowanie & niepokryte_w_klasie
+                        if not biezace_obiekty:
+                            break
     return reguly
 
 
 def wypisz_reguly(reguly, nazwy_atrybutow):
     print("Reguły:")
+    if not reguly:
+        print("Brak wygenerowanych reguł.")
+        return
+
     for i, regula in enumerate(reguly, 1):
         warunki = regula['warunki']
         decyzja = regula['decyzja']
         pokrycie = regula['pokrycie']
-        obiekty = regula['obiekty']
+        obiekty_str = ", ".join(sorted(regula['obiekty']))
 
         warunki_str = " ∧ ".join([f"({nazwy_atrybutow[atrybut]}={wartosc})" for atrybut, wartosc in warunki])
+
         print(f"Reguła {i}")
-        print(f"{warunki_str} =⇒ (d={decyzja})", end="")
+        print(f"{warunki_str} => (d={decyzja})", end="")
         if pokrycie > 1:
             print(f"[{pokrycie}]")
         else:
-            print()
-        print(f"   (obiekty: {', '.join(obiekty)})\n")
+            print(f"[{pokrycie}]")
+        print(f"   (obiekty: {obiekty_str})\n")
 
 
 def wczytaj_dane_z_pliku(nazwa_pliku):

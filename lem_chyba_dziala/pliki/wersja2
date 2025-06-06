@@ -1,0 +1,43 @@
+import pandas as pd
+
+df = pd.read_csv("SystemDecyzyjny.txt", sep=" ", header=None)
+df.columns = ['ID', 'Pogoda', 'Temperatura', 'Wilgotnosc', 'Wiatr', 'Decyzja']
+df = df.drop(columns=['ID'])
+
+def generate_candidate_rules(df, min_support=2):
+    attributes = df.columns[:-1]
+    rules = []
+
+    for decision in df['Decyzja'].unique():
+        decision_df = df[df['Decyzja'] == decision]
+        other_df = df[df['Decyzja'] != decision]
+
+        for idx1, row1 in decision_df.iterrows():
+            for idx2, row2 in decision_df.iterrows():
+                if idx1 >= idx2:
+                    continue
+
+
+                common = [(attr, row1[attr]) for attr in attributes if row1[attr] == row2[attr]]
+                if not common:
+                    continue
+
+
+                mask = pd.Series([True] * len(df))
+                for attr, val in common:
+                    mask &= (df[attr] == val)
+                matched = df[mask]
+
+
+                if len(matched) >= min_support and all(matched['Decyzja'] == decision):
+                    rules.append((common, decision))
+
+    return rules
+
+rules = generate_candidate_rules(df, min_support=2)
+if rules:
+    for i, (conds, dec) in enumerate(rules, 1):
+        txt = " ∧ ".join([f"({a} = {v})" for a, v in conds])
+        print(f"Reguła {i}: {txt} => (Decyzja = {dec})")
+else:
+    print(" Nie znaleziono żadnych reguł!")

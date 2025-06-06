@@ -1,0 +1,3 @@
+covering - zrobiony
+exhaustive - prawie, daje dobre wyniki
+knn - zrobiony dobrze na 100

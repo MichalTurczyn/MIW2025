@@ -132,30 +132,20 @@ def wypisz_reguly(reguly, nazwy_atrybutow):
         print(f"   (obiekty: {', '.join(obiekty)})\n")
 
 
-def wczytaj_dane_z_pliku(nazwa_pliku):
-    dane = []
-    with open(nazwa_pliku, 'r') as plik:
-        pierwsza_linia = [int(x) for x in plik.readline().strip().split()]
+if __name__ == "__main__":
+    dane = [
+        ['a1', 'a2', 'a3', 'a4', 'a5', 'decision', 'object'],
+        [2, 6, 1, 2, 3, 1, 'o1'],
+        [1, 1, 1, 3, 2, 1, 'o2'],
+        [2, 1, 1, 2, 3, 1, 'o3'],
+        [4, 1, 3, 1, 2, 1, 'o4'],
+        [3, 5, 2, 1, 3, 2, 'o5'],
+        [3, 1, 3, 1, 1, 2, 'o6'],
+        [1, 1, 1, 3, 1, 2, 'o7']
+    ]
 
-        liczba_atrybutow_warunkowych = len(pierwsza_linia) - 1
+    nazwy_atrybutow = dane[0][:-2]
 
-        naglowek = [f'a{i + 1}' for i in range(liczba_atrybutow_warunkowych)] + ['decyzja', 'obiekt_id']
-        dane.append(naglowek)
+    reguly = algorytm_lem2(dane, nazwy_atrybutow)
 
-        identyfikator_1 = f"o{1}"
-        dane.append(pierwsza_linia[:-1] + [pierwsza_linia[-1], identyfikator_1])
-
-        for i, linia in enumerate(plik, start=2):
-            wartosci = [int(x) for x in linia.strip().split()]
-            identyfikator = f"o{i}"
-            dane.append(wartosci[:-1] + [wartosci[-1], identyfikator])
-    return dane
-
-
-nazwa_pliku = 'pliki/values.txt'
-dane = wczytaj_dane_z_pliku(nazwa_pliku)
-
-nazwy_atrybutow = dane[0][:-2]
-
-reguly = algorytm_lem2(dane, nazwy_atrybutow)
-wypisz_reguly(reguly, nazwy_atrybutow)
+    wypisz_reguly(reguly, nazwy_atrybutow)

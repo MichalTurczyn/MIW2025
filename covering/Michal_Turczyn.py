@@ -53,8 +53,14 @@ reguly_2 = znajdz_reguly_2_rzedu(atrybuty, decyzje, pokryte_obiekty)
 
 print("Rząd I:")
 for reg in reguly_1:
-    print(f"o{reg[0] + 1} (a{reg[1] + 1}={int(reg[2])}) => d={int(reg[3])}")
+    kolumna, wartosc = reg[1], reg[2]
+    maska = atrybuty[:, kolumna] == wartosc
+    liczba = np.sum(maska)
+    print(f"o{reg[0] + 1} (a{kolumna + 1}={int(wartosc)}) => d={int(reg[3])} [{liczba}]")
 
 print("\nRząd II:")
 for reg in reguly_2:
-    print(f"o{reg[0] + 1} (a{reg[1] + 1}={int(reg[2])}) ^ (a{reg[3] + 1}={int(reg[4])}) => d={int(reg[5])}")
+    kol1, wart1, kol2, wart2 = reg[1], reg[2], reg[3], reg[4]
+    maska = (atrybuty[:, kol1] == wart1) & (atrybuty[:, kol2] == wart2)
+    liczba = np.sum(maska)
+    print(f"o{reg[0] + 1} (a{kol1 + 1}={int(wart1)}) ^ (a{kol2 + 1}={int(wart2)}) => d={int(reg[5])} [{liczba}]")
