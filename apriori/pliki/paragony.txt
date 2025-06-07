@@ -1,0 +1,6 @@
+kapusta,ogórki,pomidory,kabaczki
+ogórki,pomidory,kabaczki
+cytryny,pomidory,woda
+cytryny,woda,jajka
+ogórki,grzybki,żołądkowa
+żołądkowa,ogórki,pomidory
